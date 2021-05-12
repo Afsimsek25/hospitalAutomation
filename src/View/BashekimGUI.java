@@ -1,15 +1,19 @@
 package View;
 
-import java.awt.BorderLayout;
+
 import java.awt.EventQueue;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 
-import org.graalvm.compiler.nodes.NodeView.Default;
 
+import Helper.Helper;
 import Model.Bashekim;
 
 import javax.swing.JLabel;
@@ -100,7 +104,7 @@ public class BashekimGUI extends JFrame {
 		w_doctor.setLayout(null);
 		w_tab.addTab("Doctor Management", null, w_doctor, null);
 		
-		JLabel lblAdSoyad = new JLabel("Name Surname");
+		JLabel lblAdSoyad = new JLabel("Full Name");
 		lblAdSoyad.setFont(new Font("Yu Gothic UI Semibold", Font.PLAIN, 17));
 		lblAdSoyad.setBounds(505, 10, 128, 24);
 		w_doctor.add(lblAdSoyad);
@@ -111,51 +115,89 @@ public class BashekimGUI extends JFrame {
 		fld_dName.setBounds(505, 34, 196, 30);
 		w_doctor.add(fld_dName);
 		
-		JButton btn_delDoctor = new JButton("Sil");
+		JButton btn_delDoctor = new JButton("Delete");
+		btn_delDoctor.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (fld_doctorID.getText().length()==0) {
+					Helper.showMsg("Please Select a Doctor...!");
+				}else {
+					if (Helper.confirm("sure")) {
+						int selectID=Integer.parseInt(fld_doctorID.getText());
+						try {
+							boolean control = bashekim.deleteDoctor(selectID);
+							if (control) {
+								Helper.showMsg("success");
+								fld_doctorID.setText(null);
+								updateDoctorModel();
+							}
+						} catch (Exception e2) {
+							e2.printStackTrace();
+						}
+					}
+					
+				}
+			}
+		});
 		btn_delDoctor.setFont(new Font("Yu Gothic Medium", Font.BOLD, 14));
-		btn_delDoctor.setBounds(505, 272, 196, 30);
+		btn_delDoctor.setBounds(505, 302, 196, 30);
 		w_doctor.add(btn_delDoctor);
 		
-		JButton btn_addDoctor = new JButton("Ekle");
+		JButton btn_addDoctor = new JButton("Add");
 		btn_addDoctor.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				if (fld_dName.getText().length()==0||fld_dPass.getText().length()==0||fld_dTcno.getText().length()==00) {
+					Helper.showMsg("fill");
+				}else {
+					try {
+						boolean control = bashekim.addDoctor(fld_dTcno.getText(),fld_dPass.getText(),fld_dName.getText());
+						if (control) {
+							Helper.showMsg("success");
+							fld_dName.setText(null);
+							fld_dTcno.setText(null);
+							fld_dPass.setText(null);
+							updateDoctorModel();
+						}
+					} catch (Exception e1) {
+						e1.printStackTrace();
+					}
+				}
 			}
 		});
 		btn_addDoctor.setFont(new Font("Yu Gothic Medium", Font.BOLD, 14));
-		btn_addDoctor.setBounds(505, 179, 196, 30);
+		btn_addDoctor.setBounds(505, 198, 196, 30);
 		w_doctor.add(btn_addDoctor);
 		
 		fld_dTcno = new JTextField();
 		fld_dTcno.setFont(new Font("Yu Gothic Light", Font.PLAIN, 10));
 		fld_dTcno.setColumns(10);
-		fld_dTcno.setBounds(505, 86, 196, 30);
+		fld_dTcno.setBounds(505, 96, 196, 30);
 		w_doctor.add(fld_dTcno);
 		
 		JLabel label_1 = new JLabel("Identity ID");
 		label_1.setFont(new Font("Yu Gothic UI Semibold", Font.PLAIN, 17));
-		label_1.setBounds(505, 62, 86, 24);
+		label_1.setBounds(505, 74, 86, 24);
 		w_doctor.add(label_1);
 		
 		fld_dPass = new JTextField();
 		fld_dPass.setFont(new Font("Yu Gothic Light", Font.PLAIN, 10));
 		fld_dPass.setColumns(10);
-		fld_dPass.setBounds(505, 139, 196, 30);
+		fld_dPass.setBounds(505, 158, 196, 30);
 		w_doctor.add(fld_dPass);
 		
 		JLabel label_2 = new JLabel("Password");
 		label_2.setFont(new Font("Yu Gothic UI Semibold", Font.PLAIN, 17));
-		label_2.setBounds(505, 115, 86, 24);
+		label_2.setBounds(505, 136, 86, 24);
 		w_doctor.add(label_2);
 		
 		fld_doctorID = new JTextField();
 		fld_doctorID.setFont(new Font("Yu Gothic Light", Font.PLAIN, 10));
 		fld_doctorID.setColumns(10);
-		fld_doctorID.setBounds(505, 232, 196, 30);
+		fld_doctorID.setBounds(505, 262, 196, 30);
 		w_doctor.add(fld_doctorID);
 		
 		JLabel label_3 = new JLabel("User ID");
 		label_3.setFont(new Font("Yu Gothic UI Semibold", Font.PLAIN, 17));
-		label_3.setBounds(505, 208, 86, 24);
+		label_3.setBounds(505, 238, 86, 24);
 		w_doctor.add(label_3);
 		
 		JScrollPane w_scrollDoctor = new JScrollPane();
@@ -164,5 +206,48 @@ public class BashekimGUI extends JFrame {
 		
 		table_doctor = new JTable(doctorModel);
 		w_scrollDoctor.setViewportView(table_doctor);
+		table_doctor.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+			@Override
+			public void valueChanged(ListSelectionEvent e) {
+				try {
+					fld_doctorID.setText(table_doctor.getValueAt(table_doctor.getSelectedRow(), 0).toString());
+				} catch (Exception e2) {
+					
+				}
+				
+			}
+		});
+		table_doctor.getModel().addTableModelListener(new TableModelListener() {
+			
+			@Override
+			public void tableChanged(TableModelEvent e) {
+				
+				if (e.getType()==TableModelEvent.UPDATE) {
+					int selectedID=Integer.parseInt(table_doctor.getValueAt(table_doctor.getSelectedRow(), 0).toString());
+					String selectedName = table_doctor.getValueAt(table_doctor.getSelectedRow(), 1).toString();
+					String selectedTcno = table_doctor.getValueAt(table_doctor.getSelectedRow(), 2).toString();
+					String selectedPass = table_doctor.getValueAt(table_doctor.getSelectedRow(), 3).toString();
+
+					try {
+					bashekim.updateDoctor(selectedID, selectedTcno, selectedPass, selectedName);
+					} catch (Exception e2) {
+						
+					}
+					
+				}
+				
+			}
+		});
+	}
+	public void updateDoctorModel() throws SQLException {
+		DefaultTableModel clearModel = (DefaultTableModel)table_doctor.getModel();
+		clearModel.setRowCount(0);
+		for (int i = 0; i < bashekim.getDoctorList().size(); i++) {
+			doctorData[0]=bashekim.getDoctorList().get(i).getId();
+			doctorData[1]=bashekim.getDoctorList().get(i).getName();
+			doctorData[2]=bashekim.getDoctorList().get(i).getTcno();
+			doctorData[3]=bashekim.getDoctorList().get(i).getPassword();
+			doctorModel.addRow(doctorData);
+		}
 	}
 }
